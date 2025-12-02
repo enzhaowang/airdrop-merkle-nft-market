@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { BACKEND_URL, MARKET_ADDRESS, TOKEN_ADDRESS } from "./config";
-import { useWeb3 } from "./hooks/useWeb3";
 import {
-  createPublicClient,
   encodeFunctionData,
-  http,
   parseAbi,
   parseUnits,
 } from "viem";
 import { sepolia } from "viem/chains";
+import { useAccount, useSignTypedData, useWriteContract, useReadContract, useConfig } from 'wagmi'
+import { ConnectButton } from "./components/ConnectButton";
 
 /// ABI fragment for the market contract (only the functions we need).
 const marketAbi = parseAbi([
@@ -24,8 +23,12 @@ const tokenAbi = parseAbi([
 ]);
 
 function App() {
-  const { account, walletClient } = useWeb3();
+  const { address: account } = useAccount()
   const [status, setStatus] = useState<string>("");
+  const { signTypedDataAsync } = useSignTypedData()
+  const { writeContractAsync } = useWriteContract()
+  const { chain } = useAccount();
+  const config = useConfig()
 
   /// Main handler to perform the discounted purchase flow:
   ///  1. Fetch Merkle proof from backend
@@ -33,7 +36,7 @@ function App() {
   ///  3. Encode permitPrePay + claimNFT into one multicall
   ///  4. Send the transaction via viem wallet client
   const handleBuy = async () => {
-    if (!account || !walletClient) {
+    if (!account) {
       setStatus("Please connect your wallet first.");
       return;
     }
@@ -63,35 +66,28 @@ function App() {
       // -------------------------------------------------
       // 2) Build EIP-2612 typed data for permit
       // -------------------------------------------------
-      const chain = sepolia;
 
-      // Public client is used to read on-chain data (token name, nonce, etc.).
-      const publicClient = createPublicClient({
-        chain,
-        transport: http()
+      const tokenNameResult = await useReadContract({
+        address: TOKEN_ADDRESS as `0x${string}`,
+        abi: tokenAbi,
+        functionName: "name"
       });
+      const tokenName = tokenNameResult.data;
 
-      const [tokenName, nonce, chainId] = await Promise.all([
-        publicClient.readContract({
-          address: TOKEN_ADDRESS as `0x${string}`,
-          abi: tokenAbi,
-          functionName: "name"
-        }),
-        publicClient.readContract({
-          address: TOKEN_ADDRESS as `0x${string}`,
-          abi: tokenAbi,
-          functionName: "nonces",
-          args: [account]
-        }),
-        walletClient.getChainId()
-      ]);
+      const nonceResult = await useReadContract({
+        address: TOKEN_ADDRESS as `0x${string}`,
+        abi: tokenAbi,
+        functionName: "nonces",
+        args: [account]
+      });
+      const nonce = nonceResult.data ?? 0n;
 
       // EIP-712 domain for the EIP-2612 permit. This must match the
       // parameters used by the ERC20Permit implementation in the token.
       const domain = {
         name: tokenName as string,
         version: "1",
-        chainId,
+        chainId: chain?.id,
         verifyingContract: TOKEN_ADDRESS as `0x${string}`
       };
 
@@ -118,8 +114,7 @@ function App() {
       setStatus("Please sign the permit message in your wallet...");
 
       // Ask the wallet (MetaMask) to sign the typed data using EIP-712.
-      const signature = await walletClient.signTypedData({
-        account,
+      const signature = await signTypedDataAsync({
         domain,
         types,
         primaryType: "Permit",
@@ -157,13 +152,11 @@ function App() {
       );
 
       // Send a single transaction that calls multicall([permitData, claimData])
-      const txHash = await walletClient.writeContract({
+      const txHash = await writeContractAsync({
         address: MARKET_ADDRESS as `0x${string}`,
         abi: marketAbi,
         functionName: "multicall",
         args: [[permitData, claimData]],
-        account,
-        chain
       });
 
       setStatus(`Transaction sent: ${txHash}`);
@@ -182,11 +175,8 @@ function App() {
       }}
     >
       <h1>Airdrop Merkle NFT Market</h1>
-
-      <p>
-        Connected address:{" "}
-        <strong>{account ?? "Not connected (open MetaMask and refresh)"}</strong>
-      </p>
+      
+      <ConnectButton />
 
       <button
         onClick={handleBuy}
