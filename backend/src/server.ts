@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { buildWhitelistTree } from "./merkle";
 
 /// Demo whitelist for testing.
@@ -15,13 +15,13 @@ app.use(express.json());
 
 /// GET /root
 /// Returns the current Merkle root that should be configured in the contract.
-app.get("/root", (_, res) => {
+app.get("/root", (_: Request, res: Response) => {
   res.json({ root });
 });
 
 /// GET /proof/:address
 /// Returns the Merkle proof for a specific address if it is in the whitelist.
-app.get("/proof/:address", (req, res) => {
+app.get("/proof/:address", (req: Request, res: Response) => {
   const address = req.params.address;
 
   const normalizedWhitelist = WHITELIST.map((a) => a.toLowerCase());

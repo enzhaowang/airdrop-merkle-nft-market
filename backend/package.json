@@ -20,5 +20,8 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3",
     "viem": "^2.40.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6"
   }
 }
