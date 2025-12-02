@@ -141,7 +141,7 @@ function App() {
       const permitData = encodeFunctionData({
         abi: marketAbi,
         functionName: "permitPrePay",
-        args: [permitValue, deadline, v, r, s]
+        args: [permitValue, deadline, Number(v), r, s]
       });
 
       // Encode the claimNFT call
@@ -162,7 +162,8 @@ function App() {
         abi: marketAbi,
         functionName: "multicall",
         args: [[permitData, claimData]],
-        account
+        account,
+        chain
       });
 
       setStatus(`Transaction sent: ${txHash}`);
