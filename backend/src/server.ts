@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import cors from "cors";
 import { buildWhitelistTree } from "./merkle";
 import dotenv from "dotenv";
 
@@ -12,6 +13,7 @@ const WHITELIST: string[] = JSON.parse(process.env.WHITELIST || "[]");
 const { root, getProof } = buildWhitelistTree(WHITELIST);
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 /// GET /root
