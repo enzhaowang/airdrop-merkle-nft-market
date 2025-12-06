@@ -35,6 +35,17 @@ export function Profile() {
     }
   });
 
+  // 2. MyNFT Balance
+  const { data: nftBalance, refetch: refetchNftBalance } = useReadContract({
+    address: MYNFT_CONTRACT_ADDRESS as `0x${string}`,
+    abi: MyNFTABI,
+    functionName: "balanceOf",
+    args: account ? [account] : undefined,
+    query: {
+      enabled: !!account,
+    }
+  });
+
   // ----------------------------------------------------------------
   // ACTIONS
   // ----------------------------------------------------------------
@@ -70,6 +81,7 @@ export function Profile() {
         args: [mintTo],
       });
       setStatus(`Mint successful: ${hash}`);
+      refetchNftBalance();
     } catch (e: any) {
       console.error(e);
       setStatus(`Mint failed: ${e.message}`);
@@ -147,7 +159,14 @@ export function Profile() {
 
       {/* --- MyNFT Section --- */}
       <Card title="MyNFT Management">
-        <div className="space-y-8">
+        <div className="mb-6">
+          <div className="text-3xl font-bold text-white">
+            {nftBalance ? nftBalance.toString() : "0"} <span className="text-wagmi-primary text-xl">NFTs</span>
+          </div>
+          <p className="text-sm text-wagmi-text-muted mt-1">Your current balance</p>
+        </div>
+
+        <div className="space-y-8 border-t border-wagmi-border pt-6">
           {/* Mint */}
           <div>
             <h4 className="text-lg font-medium mb-4 text-white">Mint New NFT</h4>
