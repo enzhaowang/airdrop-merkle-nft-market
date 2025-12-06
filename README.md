@@ -20,9 +20,9 @@ This project includes smart contracts, backend Merkle tree generation, and a com
 
 ## Project Structure
 
-airdrop-merkle-nft-market/
-├── contracts/ # Foundry contracts and tests
-├── backend/ # Merkle tree & proof API
+airdrop-merkle-nft-market/  
+├── contracts/ # Foundry contracts and tests  
+├── backend/ # Merkle tree & proof API  
 └── frontend/ # React dApp using viem
 
 
