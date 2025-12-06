@@ -1,12 +1,13 @@
 import express, { Request, Response } from "express";
 import { buildWhitelistTree } from "./merkle";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 /// Demo whitelist for testing.
 /// In a real project you would probably load this from a database.
-const WHITELIST = [
-  "0x0000000000000000000000000000000000000001",
-  "0x0000000000000000000000000000000000000002"
-];
+const WHITELIST: string[] = JSON.parse(process.env.WHITELIST || "[]");
+
 
 const { root, getProof } = buildWhitelistTree(WHITELIST);
 
