@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/wagmiprovider.tsx","./src/config.ts","./src/main.tsx","./src/types.d.ts","./src/components/connectbutton.tsx","./src/components/layout.tsx","./src/components/ui/button.tsx","./src/components/ui/card.tsx","./src/components/ui/input.tsx","./src/pages/home.tsx","./src/pages/market.tsx","./src/pages/profile.tsx"],"version":"5.9.3"}
